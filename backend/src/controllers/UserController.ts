@@ -38,10 +38,19 @@ export class UserController {
     try {
       const users = await prisma.user.findMany();
 
-      return res.json(users);
+      const allUsers = users.map((user) => {
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          status: user.status,
+        };
+      });
+
+      return res.json({ users: allUsers });
     } catch (error) {
       console.log(error);
-      res.status(500).json({ message: "Internal Server Error" });
+      return res.status(500).json({ message: "Internal Server Error" });
     }
   }
 
