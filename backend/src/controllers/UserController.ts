@@ -5,29 +5,39 @@ import { prisma } from "../database/prismaClient";
 import bcrypt from "bcrypt";
 
 export class UserController {
-  static async authenticate(email) {
+  static async authenticate(email: string) {
     return await prisma.user.findUnique({ where: { email } });
   }
 
   static async createUser(req: Request, res: Response) {
     try {
-      const { name, email } = req.body;
-      const password = await bcrypt.hash(req.body.password, 10);
+      const { name, email, password } = req.body;
+
       let user = await prisma.user.findUnique({ where: { email } });
+
       if (user) {
         return res.json({ message: "User already exists" });
       }
-      user = await prisma.user.create({ data: { name, email, password } });
-      return res.json(user);
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      user = await prisma.user.create({
+        data: { name, email, password: hashedPassword },
+      });
+
+      return res.json({
+        message: `User ${user.name} was created successfully!`,
+      });
     } catch (error) {
       console.log(error);
-      res.status(500).json({ message: "Internal Server Error" });
+      return res.status(500).json({ message: "Internal Server Error" });
     }
   }
 
   static async listUsers(req: Request, res: Response) {
     try {
       const users = await prisma.user.findMany();
+
       return res.json(users);
     } catch (error) {
       console.log(error);
