@@ -57,11 +57,23 @@ export class UserController {
   static async getUser(req: Request, res: Response) {
     try {
       const { email } = req.params;
+
       const user = await prisma.user.findUnique({ where: { email } });
-      return res.json(user);
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      return res.json({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        status: user.status,
+      });
     } catch (error) {
       console.log(error);
-      res.status(500).json({ message: "Internal Server Error" });
+
+      return res.status(500).json({ message: "Internal Server Error" });
     }
   }
 
