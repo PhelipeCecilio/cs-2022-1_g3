@@ -12,6 +12,11 @@ enum Status {
   OFFLINE
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
 model user {
   id        String    @id @default(cuid())
   name      String
@@ -21,6 +26,7 @@ model user {
   updatedAt DateTime  @default(now())
   message  message[]
   status    Status    @default(OFFLINE)
+  role    Role    @default(USER)
 }
 
 model message {
