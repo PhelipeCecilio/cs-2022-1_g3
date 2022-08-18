@@ -5,10 +5,6 @@ import { prisma } from "../database/prismaClient";
 import bcrypt from "bcrypt";
 
 export class UserController {
-  static async authenticate(email: string) {
-    return await prisma.user.findUnique({ where: { email } });
-  }
-
   static async createUser(req: Request, res: Response) {
     try {
       const { name, email, password } = req.body;
@@ -83,22 +79,20 @@ export class UserController {
 
   static async changeStatus(req: Request, res: Response) {
     try {
-      const { id, status } = req.body;
+      const { status } = req.body;
+      const { email } = req.params;
 
-      await prisma.user.update({
-        where: { id },
+      const updatedUser = await prisma.user.update({
+        where: { email },
         data: { status },
       });
 
-      return res.json("User status updated successfully!");
+      return res.status(201).json({
+        message: `User status updated successfully to status: ${updatedUser.status}!`,
+      });
     } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError) {
-        console.log(error);
-        res.status(404).json({ message: "User not found" });
-      } else {
-        console.log(error);
-        res.status(500).json({ message: "Internal Server Error" });
-      }
+      console.log(error);
+      return res.status(500).json({ message: "Internal Server Error" });
     }
   }
 }
