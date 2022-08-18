@@ -1,4 +1,3 @@
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { Request, Response } from "express";
 import { prisma } from "../database/prismaClient";
 
@@ -40,6 +39,7 @@ export class UserController {
           name: user.name,
           email: user.email,
           status: user.status,
+          role: user.role,
         };
       });
 
@@ -73,9 +73,77 @@ export class UserController {
     }
   }
 
-  //TODO: se der tempo criar logica para deletar ou editar um usuário.
-  async updateUser() {}
-  async deletUser() {}
+  static async updateUser(req: Request, res: Response) {
+    try {
+      const { email } = req.params;
+      const { name, currentPassword, newPassword } = req.body;
+
+      if (name && currentPassword && newPassword) {
+        return res.status(400).json({
+          message: "You can't update name and password at the same time",
+        });
+      }
+
+      if (currentPassword && newPassword) {
+        const user = await prisma.user.findUnique({ where: { email } });
+
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        const isPasswordCorrect = await bcrypt.compare(
+          currentPassword,
+          user.password
+        );
+
+        if (!isPasswordCorrect) {
+          return res.status(401).json({ message: "Password is incorrect" });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        const updatedUser = await prisma.user.update({
+          where: { email },
+          data: { password: hashedPassword },
+        });
+
+        return res.status(201).json({
+          message: `User ${updatedUser.name} password was updated successfully!`,
+        });
+      }
+
+      if (name) {
+        const updatedUser = await prisma.user.update({
+          where: { email },
+          data: { name },
+        });
+
+        return res.status(201).json({
+          message: `User ${updatedUser.name} name was updated successfully!`,
+        });
+      }
+
+      return res.status(400).json({ message: "Nothing to updated" });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+
+  static async deleteUser(req: Request, res: Response) {
+    try {
+      const { email } = req.params;
+
+      const deletedUser = await prisma.user.delete({ where: { email } });
+
+      return res.status(201).json({
+        message: `User ${deletedUser.name} was deleted successfully!`,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
 
   static async changeStatus(req: Request, res: Response) {
     try {
@@ -84,7 +152,7 @@ export class UserController {
 
       const updatedUser = await prisma.user.update({
         where: { email },
-        data: { status },
+        data: { status: status.toUpperCase() },
       });
 
       return res.status(201).json({
