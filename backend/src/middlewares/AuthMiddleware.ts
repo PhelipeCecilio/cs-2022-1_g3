@@ -1,59 +1,79 @@
-import { Request, Response } from "express";
+import { prisma } from "../database/prismaClient";
+import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { NextFunction } from "express";
-import { UserController } from "../controllers/UserController";
-import bcrypt from "bcrypt";
 
 export class AuthMiddleware {
-  constructor() {}
-
-  static async login(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { email, password } = req.body;
-      const user = await UserController.authenticate(email);
-      if (!user) {
-        return res.json({ message: "User not found" });
-      }
-      console.log(user);
-      if (user) {
-        if (await bcrypt.compare(password, user.password)) {
-          const token = jwt.sign(
-            { id: user.id },
-            process.env.JWT_SECRET as string,
-            {
-              expiresIn: "24h",
-            }
-          );
-          console.log(token);
-          return res.json({ token });
-        } else {
-          console.log("Senha incorreta");
-          return res.json({ message: "Invalid password" });
-        }
-      }
-      next(user);
-    } catch (error) {
-      next(error);
-      console.log(error);
-      res.status(500).json({ message: "Internal Server Error" });
-    }
-  }
-
-  static async authenticate(req: Request, res: Response, next: NextFunction) {
+  static async isAuthenticated(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
       const token = req.headers.authorization;
+
       if (!token) {
-        return res.json({ message: "Token not found" });
+        return res.status(404).json({ message: "Token not found" });
       }
-      const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
+
+      const parsedToken = token.split(" ")[1];
+
+      const decoded = jwt.verify(parsedToken, process.env.JWT_SECRET as string);
+
       if (!decoded) {
         return res.json({ message: "Invalid token" });
       }
+
       next();
     } catch (error) {
       next(error);
       console.log(error);
-      res.status(500).json({ message: "Internal Server Error" });
+
+      return res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+
+  static async isAdmin(req: Request, res: Response, next: NextFunction) {
+    try {
+      const token = req.headers.authorization;
+
+      if (!token) {
+        return res.status(404).json({ message: "Token not found" });
+      }
+
+      const parsedToken = token.split(" ")[1];
+
+      const decoded = jwt.verify(parsedToken, process.env.JWT_SECRET as string);
+
+      if (!decoded) {
+        return res.status(400).json({ message: "Invalid token" });
+      }
+
+      const userId = typeof decoded === "object" ? decoded.id : null;
+
+      if (!userId) {
+        return res.status(400).json({ message: "Invalid token" });
+      }
+
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+
+      console.log(user?.name, user?.role);
+
+      if (!user) {
+        return res.status(400).json({ message: "Invalid user" });
+      }
+
+      if (user?.role !== "ADMIN") {
+        return res.status(401).json({
+          message: "Operation not allowed! Only admins can perform that.",
+        });
+      }
+
+      next();
+    } catch (error) {
+      next(error);
+      console.log(error);
+
+      return res.status(500).json({ message: "Unable to verify token" });
     }
   }
 }
