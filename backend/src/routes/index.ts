@@ -7,15 +7,13 @@ import { AuthMiddleware } from "../middlewares/AuthMiddleware";
 
 const routes = express.Router();
 
-routes.post("/login", AuthController.login);
-
 routes.post("/signup", UserController.createUser);
-routes.get("/users/:email", UserController.getUser);
-routes.get("/users", UserController.listUsers);
+routes.post("/login", AuthController.login);
 
 // All routes below require authentication
 routes.use(AuthMiddleware.isAuthenticated);
 
+routes.get("/users/:email", UserController.getUser);
 routes.put("/users/:email/status", UserController.changeStatus);
 routes.post("/chat", ChatController.createChat);
 routes.get("/chat/:id", ChatController.getChat);
@@ -28,5 +26,15 @@ routes.get("/message/:id", MessageController.getMessage);
 routes.get("/messages", MessageController.listMessages);
 routes.put("/message/:id", MessageController.updateMessage);
 routes.delete("/message/:id", MessageController.deleteMessage);
+
+// All routes bellow require to be admin
+routes.use(AuthMiddleware.isAdmin);
+
+routes.get("/users", UserController.listUsers);
+routes.delete(
+  "/users/:email",
+  AuthMiddleware.isAdmin,
+  UserController.deleteUser
+);
 
 export default routes;
