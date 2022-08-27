@@ -15,11 +15,12 @@ routes.use(AuthMiddleware.isAuthenticated);
 
 routes.get("/users/:email", UserController.getUser);
 routes.put("/users/:email/status", UserController.changeStatus);
-routes.post("/chat", ChatController.createChat);
-routes.get("/chat/:id", ChatController.getChat);
+
+routes.post("/chats", ChatController.createChat);
+routes.get("/chats/:id", ChatController.getChat);
 routes.get("/chats", ChatController.listChats);
-routes.put("/chat/:id", ChatController.updateChat);
-routes.delete("/chat/:id", ChatController.deleteChat);
+routes.put("/chats/:id", ChatController.updateChat);
+routes.delete("/chats/:id", ChatController.deleteChat);
 
 routes.post("/message", MessageController.createMessage);
 routes.get("/message/:id", MessageController.getMessage);
