@@ -28,6 +28,12 @@ export class AuthMiddleware {
       next(error);
       console.log(error);
 
+      if (error instanceof jwt.TokenExpiredError) {
+        return res.status(401).json({ message: "Token expired" });
+      } else if (error instanceof jwt.JsonWebTokenError) {
+        return res.status(401).json({ message: "Invalid token" });
+      }
+
       return res.status(500).json({ message: "Internal Server Error" });
     }
   }
@@ -56,8 +62,6 @@ export class AuthMiddleware {
 
       const user = await prisma.user.findUnique({ where: { id: userId } });
 
-      console.log(user?.name, user?.role);
-
       if (!user) {
         return res.status(400).json({ message: "Invalid user" });
       }
@@ -72,6 +76,12 @@ export class AuthMiddleware {
     } catch (error) {
       next(error);
       console.log(error);
+
+      if (error instanceof jwt.TokenExpiredError) {
+        return res.status(401).json({ message: "Token expired" });
+      } else if (error instanceof jwt.JsonWebTokenError) {
+        return res.status(401).json({ message: "Invalid token" });
+      }
 
       return res.status(500).json({ message: "Unable to verify token" });
     }
