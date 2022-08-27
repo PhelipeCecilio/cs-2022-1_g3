@@ -23,6 +23,21 @@ export class AuthMiddleware {
         return res.json({ message: "Invalid token" });
       }
 
+      const userId = typeof decoded === "object" ? decoded.userId : null;
+
+      if (!userId) {
+        return res.status(400).json({ message: "Invalid token" });
+      }
+
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+
+      if (!user) {
+        return res.status(400).json({ message: "Invalid user" });
+      }
+
+      //@ts-ignore
+      req.currentUser = user;
+
       next();
     } catch (error) {
       next(error);
@@ -54,7 +69,7 @@ export class AuthMiddleware {
         return res.status(400).json({ message: "Invalid token" });
       }
 
-      const userId = typeof decoded === "object" ? decoded.id : null;
+      const userId = typeof decoded === "object" ? decoded.userId : null;
 
       if (!userId) {
         return res.status(400).json({ message: "Invalid token" });
@@ -71,6 +86,8 @@ export class AuthMiddleware {
           message: "Operation not allowed! Only admins can perform that.",
         });
       }
+
+      req.user = user;
 
       next();
     } catch (error) {
