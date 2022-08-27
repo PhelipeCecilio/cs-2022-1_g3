@@ -84,13 +84,13 @@ export class UserController {
         });
       }
 
+      const user = await prisma.user.findUnique({ where: { email } });
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
       if (currentPassword && newPassword) {
-        const user = await prisma.user.findUnique({ where: { email } });
-
-        if (!user) {
-          return res.status(404).json({ message: "User not found" });
-        }
-
         const isPasswordCorrect = await bcrypt.compare(
           currentPassword,
           user.password
@@ -134,6 +134,12 @@ export class UserController {
     try {
       const { email } = req.params;
 
+      const user = await prisma.user.findUnique({ where: { email } });
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
       const deletedUser = await prisma.user.delete({ where: { email } });
 
       return res.status(201).json({
@@ -149,6 +155,12 @@ export class UserController {
     try {
       const { status } = req.body;
       const { email } = req.params;
+
+      const user = await prisma.user.findUnique({ where: { email } });
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
 
       const updatedUser = await prisma.user.update({
         where: { email },
