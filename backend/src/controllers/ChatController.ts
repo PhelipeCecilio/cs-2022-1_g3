@@ -6,9 +6,6 @@ import * as Yup from "yup";
 
 export class ChatController {
   static async createChat(req: Request, res: Response) {
-    //@ts-ignore
-    console.log(req.currentUser);
-
     let schema = Yup.object().shape({
       name: Yup.string().required().min(3),
     });
@@ -96,13 +93,26 @@ export class ChatController {
   }
 
   static async deleteChat(req: Request, res: Response) {
+    //@ts-ignore
+    const currentUser = req.currentUser;
+
     try {
       const id = req.params.id;
+
       let chat = await prisma.chat.findUnique({ where: { id } });
+
       if (!chat) {
         return res.json({ message: "Chat not found" });
       }
+
+      if (chat.userId !== currentUser.id) {
+        return res
+          .status(401)
+          .json({ message: "You are not authorized to delete this chat" });
+      }
+
       chat = await prisma.chat.delete({ where: { id } });
+
       return res.json(chat);
     } catch (error) {
       console.log(error);
