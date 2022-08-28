@@ -25,7 +25,7 @@ export class UserController {
       let user = await prisma.user.findUnique({ where: { email } });
 
       if (user) {
-        return res.json({ message: "User already exists" });
+        return res.status(400).json({ message: "User already exists" });
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
