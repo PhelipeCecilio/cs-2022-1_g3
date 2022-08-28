@@ -5,7 +5,7 @@ import { prisma } from "../database/prismaClient";
 import * as Yup from "yup";
 
 export class ChatController {
-  static async createChat(req: Request, res: Response) {
+  static async store(req: Request, res: Response) {
     let schema = Yup.object().shape({
       name: Yup.string().required().min(3),
     });
@@ -39,7 +39,7 @@ export class ChatController {
     }
   }
 
-  static async getChat(req: Request, res: Response) {
+  static async show(req: Request, res: Response) {
     const id = req.params.id;
     try {
       let chat = await prisma.chat.findUnique({ where: { id } });
@@ -59,7 +59,7 @@ export class ChatController {
     }
   }
 
-  static async listChats(req: Request, res: Response) {
+  static async index(req: Request, res: Response) {
     const userId = req.query.userId as string | undefined;
 
     try {
@@ -75,15 +75,26 @@ export class ChatController {
     }
   }
 
-  static async updateChat(req: Request, res: Response) {
+  static async update(req: Request, res: Response) {
     const id = req.params.id;
 
     try {
       let chat = await prisma.chat.findUnique({ where: { id } });
+
       if (!chat) {
         return res.json({ message: "Chat not found" });
       }
+
+      if (chat.userId !== req.currentUser.id) {
+        if (req.currentUser.role !== "ADMIN") {
+          return res
+            .status(401)
+            .json({ message: "You are not authorized to update this chat" });
+        }
+      }
+
       chat = await prisma.chat.update({ where: { id }, data: req.body });
+
       return res.json(chat);
     } catch (error) {
       console.log(error);
@@ -91,7 +102,7 @@ export class ChatController {
     }
   }
 
-  static async deleteChat(req: Request, res: Response) {
+  static async delete(req: Request, res: Response) {
     const currentUser = req.currentUser;
 
     try {
@@ -104,9 +115,11 @@ export class ChatController {
       }
 
       if (chat.userId !== currentUser.id) {
-        return res
-          .status(401)
-          .json({ message: "You are not authorized to delete this chat" });
+        if (req.currentUser.role !== "ADMIN") {
+          return res
+            .status(401)
+            .json({ message: "You are not authorized to delete this chat" });
+        }
       }
 
       chat = await prisma.chat.delete({ where: { id } });

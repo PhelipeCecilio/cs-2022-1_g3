@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
 export class AuthController {
-  static async login(req: Request, res: Response) {
+  static async store(req: Request, res: Response) {
     try {
       const { email, password } = req.body;
 

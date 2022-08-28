@@ -3,7 +3,7 @@ import { prisma } from "../database/prismaClient";
 import * as Yup from "yup";
 
 export class MessageController {
-  static async createMessage(req: Request, res: Response) {
+  static async store(req: Request, res: Response) {
     try {
       let schema = Yup.object().shape({
         content: Yup.string().required().min(3),
@@ -40,7 +40,7 @@ export class MessageController {
     }
   }
 
-  static async getMessage(req: Request, res: Response) {
+  static async show(req: Request, res: Response) {
     try {
       const id = req.params.id;
 
@@ -57,7 +57,7 @@ export class MessageController {
     }
   }
 
-  static async listMessages(req: Request, res: Response) {
+  static async index(req: Request, res: Response) {
     try {
       let schema = Yup.object().shape({
         chatId: Yup.string().required(),
@@ -95,7 +95,7 @@ export class MessageController {
     }
   }
 
-  static async updateMessage(req: Request, res: Response) {
+  static async update(req: Request, res: Response) {
     try {
       const id = req.params.id;
 
@@ -134,7 +134,7 @@ export class MessageController {
     }
   }
 
-  static async deleteMessage(req: Request, res: Response) {
+  static async delete(req: Request, res: Response) {
     try {
       const id = req.params.id;
 
