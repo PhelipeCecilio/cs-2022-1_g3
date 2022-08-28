@@ -22,11 +22,11 @@ routes.get("/chats", ChatController.listChats);
 routes.put("/chats/:id", ChatController.updateChat);
 routes.delete("/chats/:id", ChatController.deleteChat);
 
-routes.post("/message", MessageController.createMessage);
-routes.get("/message/:id", MessageController.getMessage);
+routes.post("/messages", MessageController.createMessage);
+routes.get("/messages/:id", MessageController.getMessage);
 routes.get("/messages", MessageController.listMessages);
-routes.put("/message/:id", MessageController.updateMessage);
-routes.delete("/message/:id", MessageController.deleteMessage);
+routes.put("/messages/:id", MessageController.updateMessage);
+routes.delete("/messages/:id", MessageController.deleteMessage);
 
 // All routes bellow require to be admin
 routes.use(AuthMiddleware.isAdmin);
