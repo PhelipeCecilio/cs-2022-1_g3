@@ -35,10 +35,8 @@ export class AuthMiddleware {
         return res.status(400).json({ message: "Invalid user" });
       }
 
-      //@ts-ignore
       req.currentUser = user;
 
-      //@ts-ignore
       if (!req.currentUser) {
         return res.status(400).json({ message: "Invalid current user" });
       }

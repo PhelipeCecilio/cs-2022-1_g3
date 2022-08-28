@@ -29,7 +29,6 @@ export class ChatController {
 
     try {
       const chat = await prisma.chat.create({
-        //@ts-ignore
         data: { name, userId: req.currentUser.id },
       });
 
@@ -93,7 +92,6 @@ export class ChatController {
   }
 
   static async deleteChat(req: Request, res: Response) {
-    //@ts-ignore
     const currentUser = req.currentUser;
 
     try {
