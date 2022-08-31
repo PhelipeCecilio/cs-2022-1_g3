@@ -1,18 +1,13 @@
-import {
-  TextInput,
-  PasswordInput,
-  Anchor,
-  Paper,
-  Title,
-  Text,
-  Container,
-  Button,
-} from '@mantine/core';
-import { useForm } from '@mantine/form';
-import { api } from '../../services/api';
-import { showNotification } from '@mantine/notifications';
+import {Anchor, Button, Container, Paper, PasswordInput, Text, TextInput, Title,} from '@mantine/core';
+import {useForm} from '@mantine/form';
+import {api} from '../../services/api';
+import {showNotification} from '@mantine/notifications';
+import {useRouter} from "next/router";
 
 export function Signup() {
+
+  const router = useRouter();
+
   const form = useForm({
     initialValues: {
       name: '',
@@ -31,12 +26,15 @@ export function Signup() {
         align="center"
         sx={(theme) => ({ fontFamily: `Greycliff CF, ${theme.fontFamily}`, fontWeight: 900 })}
       >
-        Bem-vido de volta!
+        Cadastre-se para enviar mensagens!
       </Title>
       <Text color="dimmed" size="sm" align="center" mt={5}>
-        Ainda não tem conta?{' '}
-        <Anchor<'a'> href="#" size="sm" onClick={(event) => event.preventDefault()}>
-          Criar conta
+        Tem uma conta? {' '}
+        <Anchor<'a'> href="#" size="sm" onClick={(event) => {
+          router.push(`/login`);
+          event.preventDefault()
+        }}>
+          Conecte-se
         </Anchor>
       </Text>
 
@@ -54,6 +52,7 @@ export function Signup() {
                 message: response.data.message,
                 color: 'green',
               });
+              router.push(`/chats`);
             } catch (error: any) {
               console.log('erro', error);
 

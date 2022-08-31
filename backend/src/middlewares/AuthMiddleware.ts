@@ -10,6 +10,7 @@ export class AuthMiddleware {
   ) {
     try {
       const token = req.headers.authorization;
+      console.log("================ TOKEN", token)
 
       if (!token) {
         return res.status(404).json({ message: "Token not found" });
