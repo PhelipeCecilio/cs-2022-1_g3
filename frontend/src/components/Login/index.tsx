@@ -60,8 +60,7 @@ export function Login() {
                 message: response.data.message,
                 color: 'green',
               });
-
-              router.push('/');
+              router.push(`/chats`);
             } catch (error: any) {
               console.log('erro', error);
 

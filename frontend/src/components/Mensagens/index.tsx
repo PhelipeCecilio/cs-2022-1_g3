@@ -1,4 +1,4 @@
-import {Container, Paper, Title} from '@mantine/core';
+import {Container, Timeline, Title} from '@mantine/core';
 import {api} from '../../services/api';
 import {useLocalStorage} from '@mantine/hooks';
 import {useRouter} from 'next/router';
@@ -53,14 +53,14 @@ export function Mensagem() {
         Chat Nome
       </Title>
 
-      <Paper withBorder shadow="md" p={30} mt={30} radius="md">
+      <Timeline>
         {isLoading ? (
           <h1>Carregando...</h1>
         ) : (
 
             <h1>Mensagem...</h1>
         )}
-      </Paper>
+      </Timeline>
     </Container>
   );
 }
