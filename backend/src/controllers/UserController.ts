@@ -91,12 +91,12 @@ export class UserController {
     try {
       let bodySchema = Yup.object().shape({
         name: Yup.string().min(3),
-        currentPassword: Yup.string().required().min(6),
+        currentPassword: Yup.string().min(6),
         newPassword: Yup.string().oneOf(
           [Yup.ref("currentPassword"), null],
           "Passwords must match"
         ),
-        status: Yup.string().required(),
+        status: Yup.string(),
       });
 
       let querySchema = Yup.object().shape({
