@@ -30,13 +30,23 @@ export async function getServerSideProps(ctx: any) {
   const cookies = nookies.get(ctx);
   const token = cookies.token;
 
-  const response = await api.get('/api/chats', {
-    headers: {
-      authorization: `Bearer ${token}`,
-    },
-  });
+  if (token) {
+    const response = await api.get('/api/chats', {
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+    });
 
-  const allChats = response.data;
+    const allChats = response.data;
 
-  return { props: { chats: allChats } };
+    return { props: { chats: allChats } };
+  } else {
+    return {
+      redirect: {
+        permanent: false,
+        destination: '/login',
+      },
+      props: {},
+    };
+  }
 }
