@@ -23,10 +23,34 @@ export class AuthMiddleware {
         return res.json({ message: "Invalid token" });
       }
 
+      const userId = typeof decoded === "object" ? decoded.userId : null;
+
+      if (!userId) {
+        return res.status(400).json({ message: "Invalid token" });
+      }
+
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+
+      if (!user) {
+        return res.status(400).json({ message: "Invalid user" });
+      }
+
+      req.currentUser = user;
+
+      if (!req.currentUser) {
+        return res.status(400).json({ message: "Invalid current user" });
+      }
+
       next();
     } catch (error) {
       next(error);
       console.log(error);
+
+      if (error instanceof jwt.TokenExpiredError) {
+        return res.status(401).json({ message: "Token expired" });
+      } else if (error instanceof jwt.JsonWebTokenError) {
+        return res.status(401).json({ message: "Invalid token" });
+      }
 
       return res.status(500).json({ message: "Internal Server Error" });
     }
@@ -48,15 +72,13 @@ export class AuthMiddleware {
         return res.status(400).json({ message: "Invalid token" });
       }
 
-      const userId = typeof decoded === "object" ? decoded.id : null;
+      const userId = typeof decoded === "object" ? decoded.userId : null;
 
       if (!userId) {
         return res.status(400).json({ message: "Invalid token" });
       }
 
       const user = await prisma.user.findUnique({ where: { id: userId } });
-
-      console.log(user?.name, user?.role);
 
       if (!user) {
         return res.status(400).json({ message: "Invalid user" });
@@ -68,10 +90,18 @@ export class AuthMiddleware {
         });
       }
 
+      req.user = user;
+
       next();
     } catch (error) {
       next(error);
       console.log(error);
+
+      if (error instanceof jwt.TokenExpiredError) {
+        return res.status(401).json({ message: "Token expired" });
+      } else if (error instanceof jwt.JsonWebTokenError) {
+        return res.status(401).json({ message: "Invalid token" });
+      }
 
       return res.status(500).json({ message: "Unable to verify token" });
     }

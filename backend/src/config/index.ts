@@ -13,5 +13,5 @@ if (!process.env.DB_HOST) {
 export default {
   // application configurations
   appName: process.env.APP_NAME,
-  appPort: process.env.APP_PORT || 3000,
+  appPort: process.env.PORT || 3000,
 };
