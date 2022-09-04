@@ -11,17 +11,11 @@ import {
 import { useForm } from '@mantine/form';
 import { api } from '../../services/api';
 import { showNotification } from '@mantine/notifications';
-import { useLocalStorage } from '@mantine/hooks';
 import { useRouter } from 'next/router';
+import { setCookie } from 'nookies';
 
 export function Login() {
   const router = useRouter();
-
-  const [token, setToken] = useLocalStorage({ key: 'token', defaultValue: '' });
-
-  if (token) {
-    // router.push('/');
-  }
 
   const form = useForm({
     initialValues: {
@@ -54,13 +48,15 @@ export function Login() {
           onSubmit={form.onSubmit(async (values) => {
             try {
               const response = await api.post('/api/login', values);
-              console.log(response.data);
               const generatedToken = response.data.token;
 
-              setToken(generatedToken);
+              setCookie(null, 'token', generatedToken, {
+                maxAge: 30 * 24 * 60 * 60,
+                path: '/',
+              });
 
               showNotification({
-                title: 'Sucesso',
+                title: 'Autenticado com sucesso!',
                 message: response.data.message,
                 color: 'green',
               });
