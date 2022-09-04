@@ -1,9 +1,15 @@
-import { Paper, Title, Container, Card, Text, Button } from '@mantine/core';
-import { useRouter } from 'next/router';
+import {Button, Card, Container, Modal, Paper, Text, Title} from '@mantine/core';
+import {useRouter} from 'next/router';
+import {useState} from "react";
+import {CreateChatModal} from "../CreateChatModal";
+
 
 export function Chats(props: any) {
   const router = useRouter();
+  const [opened, setOpened] = useState(false);
   const allChats = props.chats;
+
+
 
   return (
     <Container size={420} my={40}>
@@ -37,6 +43,24 @@ export function Chats(props: any) {
             </Button>
           </Card>
         ))}
+          <Card shadow="sm" p="lg" radius="md" mt={16} withBorder>
+              <Modal
+                  opened={opened}
+                  onClose={() => setOpened(false)}
+              >
+                <CreateChatModal />
+              </Modal>
+              <Button
+                  variant="light"
+                  color="blue"
+                  fullWidth
+                  mt="md"
+                  radius="md"
+                  onClick={() => setOpened(true)}
+              >
+                  Criar um novo Chat!
+              </Button>
+          </Card>
       </Paper>
     </Container>
   );

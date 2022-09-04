@@ -167,7 +167,7 @@ export class UserController {
         });
 
         return res.status(201).json({
-          message: `User ${updatedUser.name} name was updated successfully!`,
+          message: `User ${updatedUser.name} status was updated successfully!`,
         });
       }
 

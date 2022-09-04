@@ -37,9 +37,12 @@ export function Login() {
         Bem-vindo de volta!
       </Title>
       <Text color="dimmed" size="sm" align="center" mt={5}>
-        Ainda não tem conta?{' '}
-        <Anchor<'a'> href="/signup" size="sm" onClick={(event) => event.preventDefault()}>
-          Criar conta
+        Não tem uma conta?{' '}
+        <Anchor<'a'> href="/signup" size="sm" onClick={(event) => {
+          event.preventDefault();
+          router.push('/signup');
+        }}>
+          Cadastre-se
         </Anchor>
       </Text>
 
