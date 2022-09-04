@@ -1,17 +1,31 @@
 import { Request, Response } from "express";
 import { prisma } from "../database/prismaClient";
+import * as Yup from "yup";
 
 import bcrypt from "bcrypt";
 
 export class UserController {
-  static async createUser(req: Request, res: Response) {
+  static async store(req: Request, res: Response) {
     try {
+      let bodySchema = Yup.object().shape({
+        name: Yup.string().required().min(3),
+        email: Yup.string().email().required(),
+        password: Yup.string().required().min(6),
+      });
+
+      try {
+        await bodySchema.validate(req.body);
+      } catch (err: any) {
+        console.log(err);
+        return res.status(400).json({ error: err });
+      }
+
       const { name, email, password } = req.body;
 
       let user = await prisma.user.findUnique({ where: { email } });
 
       if (user) {
-        return res.json({ message: "User already exists" });
+        return res.status(400).json({ message: "User already exists" });
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -29,7 +43,7 @@ export class UserController {
     }
   }
 
-  static async listUsers(req: Request, res: Response) {
+  static async index(req: Request, res: Response) {
     try {
       const users = await prisma.user.findMany();
 
@@ -50,7 +64,7 @@ export class UserController {
     }
   }
 
-  static async getUser(req: Request, res: Response) {
+  static async show(req: Request, res: Response) {
     try {
       const { email } = req.params;
 
@@ -73,24 +87,58 @@ export class UserController {
     }
   }
 
-  static async updateUser(req: Request, res: Response) {
+  static async update(req: Request, res: Response) {
     try {
-      const { email } = req.params;
-      const { name, currentPassword, newPassword } = req.body;
+      let bodySchema = Yup.object().shape({
+        name: Yup.string().min(3),
+        currentPassword: Yup.string().required().min(6),
+        newPassword: Yup.string().oneOf(
+          [Yup.ref("currentPassword"), null],
+          "Passwords must match"
+        ),
+        status: Yup.string().required(),
+      });
 
-      if (name && currentPassword && newPassword) {
+      let querySchema = Yup.object().shape({
+        email: Yup.string().email(),
+      });
+
+      try {
+        await bodySchema.validate(req.body);
+        await querySchema.validate(req.query);
+      } catch (err: any) {
+        console.log(err);
+
+        return res.status(400).json({ error: err });
+      }
+
+      const { email } = req.params;
+      const { name, currentPassword, newPassword, status } = req.body;
+
+      if (
+        (name && currentPassword && newPassword && status) ||
+        (name && currentPassword && newPassword)
+      ) {
         return res.status(400).json({
-          message: "You can't update name and password at the same time",
+          message: "You can't update multiple data at the same time",
         });
       }
 
-      if (currentPassword && newPassword) {
-        const user = await prisma.user.findUnique({ where: { email } });
+      const user = await prisma.user.findUnique({ where: { email } });
 
-        if (!user) {
-          return res.status(404).json({ message: "User not found" });
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      if (user.id !== req.currentUser.id) {
+        if (req.currentUser.role !== "ADMIN") {
+          return res
+            .status(401)
+            .json({ message: "You can't update other user's data" });
         }
+      }
 
+      if (currentPassword && newPassword) {
         const isPasswordCorrect = await bcrypt.compare(
           currentPassword,
           user.password
@@ -112,6 +160,17 @@ export class UserController {
         });
       }
 
+      if (status) {
+        const updatedUser = await prisma.user.update({
+          where: { email },
+          data: { status },
+        });
+
+        return res.status(201).json({
+          message: `User ${updatedUser.name} name was updated successfully!`,
+        });
+      }
+
       if (name) {
         const updatedUser = await prisma.user.update({
           where: { email },
@@ -130,33 +189,24 @@ export class UserController {
     }
   }
 
-  static async deleteUser(req: Request, res: Response) {
+  static async delete(req: Request, res: Response) {
     try {
+      if (req.currentUser.role !== "ADMIN") {
+        return res.status(401).json({ message: "You can't delete users" });
+      }
+
       const { email } = req.params;
+
+      const user = await prisma.user.findUnique({ where: { email } });
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
 
       const deletedUser = await prisma.user.delete({ where: { email } });
 
       return res.status(201).json({
         message: `User ${deletedUser.name} was deleted successfully!`,
-      });
-    } catch (error) {
-      console.log(error);
-      return res.status(500).json({ message: "Internal Server Error" });
-    }
-  }
-
-  static async changeStatus(req: Request, res: Response) {
-    try {
-      const { status } = req.body;
-      const { email } = req.params;
-
-      const updatedUser = await prisma.user.update({
-        where: { email },
-        data: { status: status.toUpperCase() },
-      });
-
-      return res.status(201).json({
-        message: `User status updated successfully to status: ${updatedUser.status}!`,
       });
     } catch (error) {
       console.log(error);

@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
 export class AuthController {
-  static async login(req: Request, res: Response) {
+  static async store(req: Request, res: Response) {
     try {
       const { email, password } = req.body;
 
@@ -18,10 +18,10 @@ export class AuthController {
       if (user) {
         if (await bcrypt.compare(password, user.password)) {
           const token = jwt.sign(
-            { id: user.id },
+            { userId: user.id },
             process.env.JWT_SECRET as string,
             {
-              expiresIn: "24h",
+              expiresIn: "10h",
             }
           );
 
