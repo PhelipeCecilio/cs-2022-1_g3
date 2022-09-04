@@ -68,6 +68,7 @@ export class ChatController {
           userId,
         },
       });
+
       return res.json(chats);
     } catch (error) {
       console.log(error);
