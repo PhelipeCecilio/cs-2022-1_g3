@@ -31,22 +31,26 @@ export async function getServerSideProps(ctx: any) {
   const token = cookies.token;
 
   if (token) {
-    const response = await api.get('/api/chats', {
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
-    });
+    try {
+      const response = await api.get('/api/chats', {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      });
 
-    const allChats = response.data;
+      const allChats = response.data;
 
-    return { props: { chats: allChats } };
-  } else {
-    return {
-      redirect: {
-        permanent: false,
-        destination: '/login',
-      },
-      props: {},
-    };
+      return { props: { chats: allChats } };
+    } catch (err) {
+      console.log(err);
+    }
   }
+
+  return {
+    redirect: {
+      permanent: false,
+      destination: '/login',
+    },
+    props: {},
+  };
 }
